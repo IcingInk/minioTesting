@@ -19,12 +19,9 @@ package se.nrm.bio.minio;
 
 import io.minio.MinioClient;
 import io.minio.ObjectStat;
-import io.minio.errors.MinioException;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,14 +40,13 @@ public class StartExample {
 
     public static void main(String[] args) throws Exception {
 
-        String accessKey = "minio";
-        String secretKey = "minio123";
-        String ipPort = "http://172.19.0.1:9001";
+        final String accessKey = "minio";
+        final String secretKey = "minio123";
+        final String ipPort = "http://172.19.0.1:9001";
 
         MinioClient minioClient = new MinioClient(ipPort, accessKey, secretKey);
 
-        String bucket = "first-bucket";
-
+        final String bucket = "first-bucket";
         boolean isExist = minioClient.bucketExists(bucket);
         if (isExist) {
             System.out.println("Bucket already exists.");
@@ -61,9 +57,12 @@ public class StartExample {
 
         String object = "20190922-null.jpg";
 
-        //StartExample.storeImageNull2Bucket(minioClient, bucket, object); // OK: stores the entire file.
+        //StartExample.storeImageNull2Bucket(minioClient, bucket, object);
         StartExample.retrieveObject(minioClient, bucket, object);
+        
+        
         // StartExample.checkStatus(minioClient, bucket, object);
+        
         System.out.println("End of code");
 
     }
@@ -97,12 +96,11 @@ public class StartExample {
      * @throws IOException
      */
     private static void storeImageNull2Bucket(MinioClient minioClient, String bucket, String objectName) throws IOException {
+        System.out.println("Fetches an image from Internet Archive and stores that image in a bucket");
         System.out.println("storeStream2Bucket, stores to bucket = ".concat(bucket));
 
         Path tempFile = Files.createTempFile(objectName, ".jpg");
-
         URL url;
-
         try {
             url = new URL("https://archive.org/download/testbild1988x556/TESTBILD-1-988x556.jpg");
 
@@ -127,9 +125,10 @@ public class StartExample {
      * @throws Exception 
      */
     private static void retrieveObject(MinioClient minioClient, String bucket, String objectName) throws Exception {
-        System.out.println("Retrieve  -method , fetch  ".concat(objectName));
+        final String path ="/home/ingimar/repos/minio/";
+        System.out.println("Retrieve-method , fetch  ".concat(objectName).concat(" and store in ".concat(path)));
 
-        final File targetFile = new File("/home/ingimar/repos/minio/".concat(objectName));
+        final File targetFile = new File(path.concat(objectName));
         final String FILE_TO = targetFile.toString();
         // java 1.7 NIO.
         try ( InputStream inputStream = minioClient.getObject(bucket, objectName);) {
