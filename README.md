@@ -60,28 +60,30 @@ pre-req : start the minio-server
 
 ### running the maven-project
 
+
 0. **mvn** clean
 1. **mvn** package
 2. **java** -jar target/MinioClient.jar
 
 
-# MC
+# mc , the minio client and 
 
-1. https://docs.min.io/docs/minio-server-configuration-guide.html
+1. https://docs.min.io/docs/minio-server-configuration-guide.html 
 
-\# mc stat minio/first-bucket
+see the below command 'mc stat' , gives you info on the file as (1) size and (2) Content-Type
 
-1. Name      : first-bucket/
-2. Date      : 1970-01-01 00:00:00 UTC 
-3. Size      : 0 B    
-4. Type      : folder
+\# mc stat minio/first-bucket/20190922-null.jpg
 
-\# mc ls minio/first-bucket
+  * Name      : 20190922-null.jpg
+  * Date      : 2019-09-22 21:35:12 UTC 
+  * Size      : 129 KiB 
+  * ETag      : 758c2ff78a4737d12703bd69255d57e8-1 
+  * Type      : file 
+  * Metadata  :
+  *  Content-Type: image/jpeg
 
-1. [2019-09-22 19:12:02 UTC]   16KiB 20190920-Funk-B.jpg
 
-
-# check out this:
+# look into:
  
 **source code for the client:** <p>
 
