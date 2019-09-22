@@ -19,6 +19,7 @@ package se.nrm.bio.minio;
 
 import io.minio.MinioClient;
 import io.minio.ObjectStat;
+import io.minio.errors.MinioException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -55,12 +56,12 @@ public class StartExample {
         } else {
             minioClient.makeBucket(bucket);
         }
-        // denna skriver ut 'ingimar-1' , (write out all my buckets')
-        minioClient.listBuckets().forEach(b -> System.out.println(b.name()));
+       // minioClient.listBuckets().forEach(b -> System.out.println(b.name()));
 
-        String object = "20190920-Funk-B.jpg";
+        String object = "20190922-A.jpg";
 
-        StartExample.storeToBucket(minioClient, bucket, object);
+        //StartExample.storeToBucket(minioClient, bucket, object); // NOT-OK : does not store the entire file
+        // StartExample.store2aBucket(minioClient, bucket, object); // OK: stores the entire file.
         StartExample.retrieveObject(minioClient, bucket, object);
         // StartExample.checkStatus(minioClient, bucket, object);
         System.out.println("End of code");
@@ -71,8 +72,7 @@ public class StartExample {
     // in the directory that you specified as the root folder when you started the Minio server.
     // https://docs.min.io/docs/java-client-api-reference.html 
     /*
-    https://docs.min.io/docs/java-client-api-reference.html#putObject 
-    
+     * https://docs.min.io/docs/java-client-api-reference.html#putObject 
      */
     private static void storeToBucket(MinioClient minioClient, String bucket, String objectName) throws IOException {
         System.out.println("Store-method, stores to bucket = ".concat(bucket));
@@ -100,8 +100,20 @@ public class StartExample {
 
     }
 
-    // https://howtodoinjava.com/java/io/4-ways-to-copy-files-in-java/
-    private static void retrieveObject(MinioClient minioClient, String bucket, String objectName) throws Exception {
+    // Works to fetch a file that is stored in directory objectToBeSaved ...
+    private static void store2aBucket(MinioClient minioClient, String bucket, String objectName) throws IOException {
+        System.out.println("Store-method, stores to bucket = ".concat(bucket));
+        String objectToBeSaved ="/home/ingimar/repos/icingink-github/minioTesting/tmp/".concat(objectName);
+        try {
+            minioClient.putObject(bucket, objectName, objectToBeSaved);
+            System.out.println("uploaded successfully");
+        } catch (Exception e) {
+            System.out.println("Error occurred: " + e);
+        }
+}
+
+// https://howtodoinjava.com/java/io/4-ways-to-copy-files-in-java/
+private static void retrieveObject(MinioClient minioClient, String bucket, String objectName) throws Exception {
         System.out.println("Retrieve  -method ");
         String accessKey = "minio";
         String secretKey = "minio123";
@@ -113,8 +125,8 @@ public class StartExample {
 
         byte[] buffer = new byte[16384];
         inStream.read(buffer);
-        //File targetFile = new File("/home/ingimar/repos/minio/".concat(objectName));
-        File targetFile = new File("/tmp/".concat(objectName));
+        File targetFile = new File("/home/ingimar/repos/minio/".concat(objectName));
+       // File targetFile = new File("/tmp/".concat(objectName));
         OutputStream outStream = new FileOutputStream(targetFile);
         outStream.write(buffer);
 
