@@ -28,6 +28,7 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,12 +57,11 @@ public class StartExample {
         } else {
             minioClient.makeBucket(bucket);
         }
-       // minioClient.listBuckets().forEach(b -> System.out.println(b.name()));
+        // minioClient.listBuckets().forEach(b -> System.out.println(b.name()));
 
-        String object = "20190922-A.jpg";
+        String object = "20190922-null.jpg";
 
-        //StartExample.storeToBucket(minioClient, bucket, object); // NOT-OK : does not store the entire file
-        // StartExample.store2aBucket(minioClient, bucket, object); // OK: stores the entire file.
+        //StartExample.storeImageNull2Bucket(minioClient, bucket, object); // OK: stores the entire file.
         StartExample.retrieveObject(minioClient, bucket, object);
         // StartExample.checkStatus(minioClient, bucket, object);
         System.out.println("End of code");
@@ -74,25 +74,44 @@ public class StartExample {
     /*
      * https://docs.min.io/docs/java-client-api-reference.html#putObject 
      */
-    private static void storeToBucket(MinioClient minioClient, String bucket, String objectName) throws IOException {
+    // Works to fetch a file that is stored in directory objectToBeSaved ...
+    private static void storeImage2Bucket(MinioClient minioClient, String bucket, String objectName) throws IOException {
         System.out.println("Store-method, stores to bucket = ".concat(bucket));
+        String objectToBeSaved = "/home/ingimar/repos/icingink-github/minioTesting/tmp/".concat(objectName);
+        try {
+            minioClient.putObject(bucket, objectName, objectToBeSaved);
+            System.out.println("uploaded successfully");
+        } catch (Exception e) {
+            System.out.println("Error occurred: " + e);
+        }
+    }
+
+    /**
+     * putObject(String bucketName, String objectName, String fileName, Long
+     * size, Map<String,String> headerMap, ServerSideEncryption sse, String
+     * contentType)
+     *
+     * @param minioClient
+     * @param bucket
+     * @param objectName
+     * @throws IOException
+     */
+    private static void storeImageNull2Bucket(MinioClient minioClient, String bucket, String objectName) throws IOException {
+        System.out.println("storeStream2Bucket, stores to bucket = ".concat(bucket));
+
+        Path tempFile = Files.createTempFile(objectName, ".jpg");
 
         URL url;
 
         try {
             url = new URL("https://archive.org/download/testbild1988x556/TESTBILD-1-988x556.jpg");
-            Path tempFile = Files.createTempFile(objectName, ".jpg");
-            Long lng;
-            try ( InputStream inStream = url.openStream()) {
-                lng = Long.valueOf(inStream.available());
-                Files.copy(inStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
 
-            }
+            System.out.println("Temp-file is ".concat(tempFile.toString()));
+            InputStream inStream = url.openStream();
+            Files.copy(inStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
 
-            System.out.println("Path tempfile is ".concat(tempFile.toString()));
-            System.out.println("lng ".concat(lng.toString()));
+            Long lng = null;
             minioClient.putObject(bucket, objectName, tempFile.toString(), lng, null, null, "image/jpeg");
-            //minioClient.putObject(bucket, objectName, tempFile.toString(), lng, null, null, "binary/octet-stream");
 
         } catch (Exception ex) {
             Logger.getLogger(StartExample.class.getName()).log(Level.SEVERE, null, ex);
@@ -100,50 +119,26 @@ public class StartExample {
 
     }
 
-    // Works to fetch a file that is stored in directory objectToBeSaved ...
-    private static void store2aBucket(MinioClient minioClient, String bucket, String objectName) throws IOException {
-        System.out.println("Store-method, stores to bucket = ".concat(bucket));
-        String objectToBeSaved ="/home/ingimar/repos/icingink-github/minioTesting/tmp/".concat(objectName);
-        try {
-            minioClient.putObject(bucket, objectName, objectToBeSaved);
-            System.out.println("uploaded successfully");
-        } catch (Exception e) {
-            System.out.println("Error occurred: " + e);
+    /**
+     * using java 1.7 NIO to copy the filestream 
+     * @param minioClient
+     * @param bucket
+     * @param objectName
+     * @throws Exception 
+     */
+    private static void retrieveObject(MinioClient minioClient, String bucket, String objectName) throws Exception {
+        System.out.println("Retrieve  -method , fetch  ".concat(objectName));
+
+        final File targetFile = new File("/home/ingimar/repos/minio/".concat(objectName));
+        final String FILE_TO = targetFile.toString();
+        // java 1.7 NIO.
+        try ( InputStream inputStream = minioClient.getObject(bucket, objectName);) {
+            Files.copy(inputStream, Paths.get(FILE_TO));
         }
-}
-
-// https://howtodoinjava.com/java/io/4-ways-to-copy-files-in-java/
-private static void retrieveObject(MinioClient minioClient, String bucket, String objectName) throws Exception {
-        System.out.println("Retrieve  -method ");
-        String accessKey = "minio";
-        String secretKey = "minio123";
-        String ipPort = "http://172.19.0.1:9001";
-
-        MinioClient client = new MinioClient(ipPort, accessKey, secretKey);
-
-        InputStream inStream = client.getObject(bucket, objectName);
-
-        byte[] buffer = new byte[16384];
-        inStream.read(buffer);
-        File targetFile = new File("/home/ingimar/repos/minio/".concat(objectName));
-       // File targetFile = new File("/tmp/".concat(objectName));
-        OutputStream outStream = new FileOutputStream(targetFile);
-        outStream.write(buffer);
-
-        inStream.close();
-        outStream.close();
-
-//        try ( FileOutputStream outputStream = new FileOutputStream(targetFile)) {
-//
-//            IOUtils.copy(inStream, outputStream);
-//
-//        }
     }
 
     private static void checkStatus(MinioClient minioClient, String bucket, String objectName) throws Exception {
         ObjectStat statObject = minioClient.statObject(bucket, objectName);
         System.out.println("Statistics " + statObject);
-
     }
-
 }
