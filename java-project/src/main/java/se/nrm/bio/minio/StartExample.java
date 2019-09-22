@@ -1,16 +1,29 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2019 ingimar
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package com.mycompany.minio;
+package se.nrm.bio.minio;
 
-import com.amazonaws.util.IOUtils;
 import io.minio.MinioClient;
+import io.minio.ObjectStat;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,7 +47,7 @@ public class StartExample {
 
         MinioClient minioClient = new MinioClient(ipPort, accessKey, secretKey);
 
-        String bucket = "ingimar-1";
+        String bucket = "first-bucket";
 
         boolean isExist = minioClient.bucketExists(bucket);
         if (isExist) {
@@ -48,7 +61,8 @@ public class StartExample {
         String object = "20190920-Funk-B.jpg";
 
         StartExample.storeToBucket(minioClient, bucket, object);
-       //  StartExample.retrieveObject(minioClient, bucket, object);
+        StartExample.retrieveObject(minioClient, bucket, object);
+        // StartExample.checkStatus(minioClient, bucket, object);
         System.out.println("End of code");
 
     }
@@ -61,7 +75,7 @@ public class StartExample {
     
      */
     private static void storeToBucket(MinioClient minioClient, String bucket, String objectName) throws IOException {
-        System.out.println("Store-method ");
+        System.out.println("Store-method, stores to bucket = ".concat(bucket));
 
         URL url;
 
@@ -74,6 +88,7 @@ public class StartExample {
                 Files.copy(inStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
 
             }
+
             System.out.println("Path tempfile is ".concat(tempFile.toString()));
             System.out.println("lng ".concat(lng.toString()));
             minioClient.putObject(bucket, objectName, tempFile.toString(), lng, null, null, "image/jpeg");
@@ -95,24 +110,28 @@ public class StartExample {
         MinioClient client = new MinioClient(ipPort, accessKey, secretKey);
 
         InputStream inStream = client.getObject(bucket, objectName);
-//      
-//        byte[] buffer = new byte[16384];
-//        inStream.read(buffer);
-        File targetFile = new File("/home/ingimar/repos/minio/".concat(objectName));
-//        OutputStream outStream = new FileOutputStream(targetFile);
-//        outStream.write(buffer);
+
+        byte[] buffer = new byte[16384];
+        inStream.read(buffer);
+        //File targetFile = new File("/home/ingimar/repos/minio/".concat(objectName));
+        File targetFile = new File("/tmp/".concat(objectName));
+        OutputStream outStream = new FileOutputStream(targetFile);
+        outStream.write(buffer);
+
+        inStream.close();
+        outStream.close();
+
+//        try ( FileOutputStream outputStream = new FileOutputStream(targetFile)) {
 //
-//        inStream.close();
-//        outStream.close();
+//            IOUtils.copy(inStream, outputStream);
+//
+//        }
+    }
 
-        try ( FileOutputStream outputStream = new FileOutputStream(targetFile)) {
-
-            IOUtils.copy(inStream, outputStream);
-           
-        }
+    private static void checkStatus(MinioClient minioClient, String bucket, String objectName) throws Exception {
+        ObjectStat statObject = minioClient.statObject(bucket, objectName);
+        System.out.println("Statistics " + statObject);
 
     }
 
 }
-
-
