@@ -81,18 +81,14 @@ pre-req : start the minio-server
 1. [2019-09-22 19:12:02 UTC]   16KiB 20190920-Funk-B.jpg
 
 
-# troubleshooting
-the file that is stored is saved in /tmp ( now = 20190920-Funk-B.jpg12165863578734466712.jpg )  and the file that is retrieved from the minio-server is stored in /tmp (20190920-Funk-B.jpg)
+# check out this:
+ 
+**source code for the client:** <p>
 
-1. /tmp> ll *jpg
-2. 8520775 -rw-rw-r-- 1 ingimar ingimar  16384 sep 22 21:49 20190920-Funk-B.jpg
-3. 8520781 -rw-rw-r-- 1 ingimar ingimar 131986 sep 22 21:49 20190920-Funk-B.jpg12165863578734466712.jpg
+https://github.com/minio/minio-java/blob/master/api/src/main/java/io/minio/MinioClient.java 
 
-So the original size is 129K in the /tmp-directory , the retrieved file is only 16K.
+**Examples: ** <p>
 
-the file stored in the mino-bucket is 16KiB :
-
-1. \# mc ls minio/first-bucket
-2. [2019-09-22 19:12:02 UTC]   16KiB 20190920-Funk-B.jpg 
+https://github.com/minio/minio-java/tree/master/examples 
 
 
