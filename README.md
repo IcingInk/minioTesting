@@ -55,7 +55,7 @@ pre-req : start the minio-server
   
 **methods; run first store and then retrieve ...**
 
-1. void storeToBucket(MinioClient minioClient, String bucket, String objectName)
+1. void storeImageNull2Bucket(MinioClient minioClient, String bucket, String objectName)
 2. void retrieveObject(MinioClient minioClient, String bucket, String objectName)
 
 ### running the maven-project
